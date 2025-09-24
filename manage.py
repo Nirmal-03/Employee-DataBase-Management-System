@@ -86,6 +86,7 @@ class Manager:
             for j in self.employee:
                 if i.id == j.id:
                     setattr(j,emp_attr,value)
+        self.filtered=[]
     def changeover(self,d,ch,user_ch):
         for i in d:
             for j in self.employee:
