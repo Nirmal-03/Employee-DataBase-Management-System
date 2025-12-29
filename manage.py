@@ -11,76 +11,50 @@ class Manager:
         print(f"{'ID':<5}{'Name':<10}{'Age':<5}{'Department':<12}{'Designation':<12}{'Reporting To':<12}")
         for emp in self.filtered:
             print(f"{emp.id:<5}{emp.name:<10}{emp.age:<5}{emp.department:<12}{emp.designation:<12}{str(emp.reportingto):<12}")
-    def search(self,s,value=None):
-        ch=input("give input value: ")
-        if self.filtered:
-            searchlist=self.filtered[:]
+    def search(self, s, value=None):
+        ch = input("give input value: ").strip()
+        searchlist = self.filtered if self.filtered else self.employee
+    
+        if s in ("<", ">", "==", "!="):
+            num = int(ch)
+            ops = {
+                "<":  lambda a, b: a < b,
+                ">":  lambda a, b: a > b,
+                "==": lambda a, b: a == b,
+                "!=": lambda a, b: a != b
+            }
+            self.filtered = [
+                emp for emp in searchlist
+                if ops[s](emp.age, num)
+            ]
+    
+        elif s == "between":
+            v1, v2 = map(int, ch.split())
+            self.filtered = [
+                emp for emp in searchlist
+                if v1 < emp.age < v2
+            ]
+    
         else:
-            searchlist=self.employee[:]
-        if s=="<":
-            self.filtered=[]
-            for i in searchlist:
-                if i.age<int(ch):
-                    self.filtered.append(i)
-        elif s==">":
-            self.filtered=[]
-            for i in searchlist:
-                if i.age>int(ch):
-                    self.filtered.append(i)
-        elif s=="==":
-            self.filtered=[]
-            for i in searchlist:
-                if i.age==int(ch):
-                    self.filtered.append(i)
-        elif s=="!=":
-            self.filtered=[]
-            for i in searchlist:
-                if i.age!=int(ch):
-                    self.filtered.append(i)
-        elif s=="between":
-            v1,v2=list(map(int,ch.split()))
-            print("working",v1,v2)
-            self.filtered=[]
-            for i in searchlist:
-                if v1<i.age and i.age<v2:
-                    self.filtered.append(i)
-        elif s=="equal":
-            self.filtered=[]
-            for i in searchlist:
-                if getattr(i,value).lower()==ch.lower():
-                    self.filtered.append(i)
-        elif s=="not equal":
-            self.filtered=[]
-            for i in searchlist:
-                if getattr(i,value).lower()!=ch.lower():
-                    self.filtered.append(i)
-        elif s=="start with":
-            self.filtered=[]
-            for i in searchlist:
-                v=getattr(i,value)
-                n=len(ch)
-                if v.lower()[:n]==ch.lower()[:n]:
-                    self.filtered.append(i)
-        elif s=="end with":
-            self.filtered=[]
-            for i in searchlist:
-                v=getattr(i,value)
-                if v is not None:
-                    n=len(v)-len(ch)
-                    if v.lower()[n:]==ch.lower():
-                        self.filtered.append(i)
-        elif s=="contains":
-            self.filtered=[]
-            for i in searchlist:
-                if ch.lower() in getattr(i,value).lower():
-                    self.filtered.append(i)
-        elif s=="not contains":
-            self.filtered=[]
-            for i in searchlist:
-                if ch.lower() not in getattr(i,value).lower():
-                    self.filtered.append(i)
+            ch = ch.lower()
+            conditions = {
+                "equal":        lambda v: v == ch,
+                "not equal":    lambda v: v != ch,
+                "start with":   lambda v: v.startswith(ch),
+                "end with":     lambda v: v.endswith(ch),
+                "contains":     lambda v: ch in v,
+                "not contains": lambda v: ch not in v
+            }
+    
+            self.filtered = [
+                emp for emp in searchlist
+                if (val := getattr(emp, value)) and
+                   conditions[s](val.lower())
+            ]
+    
         self.printdb()
         self.addcriteria()
+
     def change(self,emp_attr,value):
         for i in self.filtered:
             for j in self.employee:
